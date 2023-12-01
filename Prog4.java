@@ -6,6 +6,7 @@
  */
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Prog4 {
@@ -157,7 +158,37 @@ public class Prog4 {
     }
 
     private static void addMember() {
+        Scanner userScanner = new Scanner(System.in);
+        System.out.println("Please input the name of the member to add.");
+        String name = userScanner.next();
+        System.out.println("Please input " + name + "'s phone number.");
+        String phone = userScanner.next();
+        System.out.println();
 
+        try {
+            ResultSet courses = statement.executeQuery("SELECT * from [tablename-courses];");
+            while (courses.next())
+                //TODO: Evaluate new MemberID. Need to see the existing member IDs and get the next one.
+
+                statement.execute("INSERT INTO [tablename-members] VALUES (" + name + ", " + phone)
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    private ArrayList<CourseData> courses() {
+        ArrayList<CourseData> retVal = new ArrayList<>();
+        try {
+            ResultSet courses = statement.executeQuery("SELECT * from [tablename-courses];");
+            while (courses.next()) {
+                CourseData thisCourse = new CourseData();
+                thisCourse.setCourseName(courses.getString("name"));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static void deleteMember() {
