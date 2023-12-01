@@ -2,13 +2,13 @@ import java.sql.Date;
 import java.sql.Time;
 
 public class CourseData {
-    String courseName;
-    Date startDate;
-    Date endDate;
-    Time startTime;
-    int duration;
-    int maxMembers;
-    int trainerID;
+    private String courseName;
+    private Date startDate;
+    private Date endDate;
+    private Time startTime;
+    private int duration;
+    private int maxMembers;
+    private int trainerID;
 
     public String getCourseName() {
         return courseName;

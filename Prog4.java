@@ -130,11 +130,30 @@ public class Prog4 {
     }
 
     private static void queryTwo() {
-
+        Scanner userScanner = new Scanner(System.in);
+        System.out.println("Please provide the name of the member whose schedule to check.");
+        String name = userScanner.next();
+        ResultSet matchingMember = statement.executeQuery("SELECT memberID FROM [tablename-members] WHERE name='" + name + "';");
+        while (!matchingMember.next()) {
+            System.out.println("Could not find a member with that name! Please try again.");
+            name = userScanner.next();
+            matchingMember = statement.executeQuery("SELECT memberID FROM [tablename-members] WHERE name='" + name + "';");
+        }
+        while (matchingMember.next()) {
+            ResultSet membersCourses = statement.executeQuery("SELECT * FROM ([tablename-members] JOIN [tablename-packages] ON ");
+        }
     }
 
     private static void queryOne() {
-
+        System.out.println("Members with Negative Balances");
+        System.out.println("NAME - PHONE #");
+        ResultSet courses = statement.executeQuery("SELECT name, phone FROM [tablename-members] WHERE ");
+        while (courses.next()) {
+            MemberData nextMember = new MemberData();
+            nextMember.setName(courses.getString("name"));
+            nextMember.setPhoneNum(courses.getString("phone"));
+            System.out.println(nextMember.getName() + " - " + nextMember.getPhoneNum());
+        }
     }
 
     private static void deletePackage() {
