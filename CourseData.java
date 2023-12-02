@@ -40,8 +40,11 @@ public class CourseData {
         return startTime;
     }
 
-    public void setStartTime(Time startTime) {
-        this.startTime = startTime;
+    public void setStartTime(String startTime) {
+        String dayPart = startTime.split(" ")[0];
+        String timePart = startTime.split(" ")[1];
+        this.startDay = DayOfWeek.valueOf(dayPart);
+        this.startTime = Time.valueOf(timePart);
     }
 
     public int getDuration() {

@@ -7,7 +7,6 @@
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -129,7 +128,7 @@ public class Prog4 {
 
     private static void queryThree() {
         HashMap<String, ArrayList<CourseData>> schedulingMap = new HashMap<>();
-        ResultSet trainerSchedules = statement.executeQuery("SELECT lexc.trainer.name, lexc.course.start_time, lexc.course.duration, lexc.course.start_date, lexc.course.end_date FROM " +
+        ResultSet trainerSchedules = statement.executeQuery("SELECT lexc.trainer.name, lexc.course.name, lexc.course.start_time, lexc.course.duration, lexc.course.start_date, lexc.course.end_date FROM " +
                 "(" +
                 "lexc.trainer JOIN lexc.course ON lexc.course.trainer_id=lexc.trainer.trainer_id" +
                 ");");
@@ -137,8 +136,23 @@ public class Prog4 {
             String rowsTrainer = trainerSchedules.getString("lexc.trainer.name");
             CourseData thisCourse = new CourseData();
             thisCourse.setStartTime(trainerSchedules.getString());
-            if (schedulingMap.containsKey(rowsTrainer)) {
-                schedulingMap.get(rowsTrainer).add()
+            if (!schedulingMap.containsKey(rowsTrainer)) {
+                schedulingMap.put(rowsTrainer, new ArrayList<>());
+            }
+            CourseData nextCourse = new CourseData();
+            nextCourse.setCourseName(trainerSchedules.getString("lexc.course.name"));
+            nextCourse.setStartTime(trainerSchedules.getString("lexc.course.start_time"));
+            nextCourse.setDuration(trainerSchedules.getInt("lexc.course.duration"));
+            nextCourse.setStartDate(trainerSchedules.getDate("lexc.course.start_date"));
+            nextCourse.setEndDate(trainerSchedules.getDate("lexc.course.end_date"));
+            schedulingMap.get(rowsTrainer).add(nextCourse);
+        }
+        for (String trainerName : schedulingMap.keySet()) {
+            System.out.println(trainerName + "'s schedule for December:");
+            for (CourseData nextCourse : schedulingMap.get(trainerName)) {
+                //TODO: If start date is during or before December, and end date is during or after December...
+                //TODO: Display time better
+                System.out.println(nextCourse.getCourseName() + " from " + nextCourse.getStartDate() + " to " + nextCourse.getEndDate() + ", starting at " + nextCourse.getStartTime() + " and ending at " + nextCourse.getStartTime() + nextCourse.getDuration());
             }
         }
     }
@@ -177,7 +191,7 @@ public class Prog4 {
                 targetCourse.setEndDate(membersCourses.getString("lexc.course.end_date"));
                 targetCourse.setDuration(membersCourses.getInt("lexc.course.duration"));
                 //TODO: If start date is during or before November, and end date is during or after November...
-                //TODO: Display time better (actually add duration to start time)
+                //TODO: Display time better
                 System.out.println(targetCourse.getCourseName() + " from " + targetCourse.getStartDate() + " to " + targetCourse.getEndDate() + ", starting at " + targetCourse.getStartTime() + " and ending at " + targetCourse.getStartTime() + targetCourse.getDuration());
             }
         }
