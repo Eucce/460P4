@@ -7,6 +7,8 @@
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Scanner;
 
 public class Prog4 {
@@ -126,28 +128,65 @@ public class Prog4 {
     }
 
     private static void queryThree() {
-
+        HashMap<String, ArrayList<CourseData>> schedulingMap = new HashMap<>();
+        ResultSet trainerSchedules = statement.executeQuery("SELECT lexc.trainer.name, lexc.course.start_time, lexc.course.duration, lexc.course.start_date, lexc.course.end_date FROM " +
+                "(" +
+                "lexc.trainer JOIN lexc.course ON lexc.course.trainer_id=lexc.trainer.trainer_id" +
+                ");");
+        while (trainerSchedules.next()) {
+            String rowsTrainer = trainerSchedules.getString("lexc.trainer.name");
+            CourseData thisCourse = new CourseData();
+            thisCourse.setStartTime(trainerSchedules.getString());
+            if (schedulingMap.containsKey(rowsTrainer)) {
+                schedulingMap.get(rowsTrainer).add()
+            }
+        }
     }
 
     private static void queryTwo() {
         Scanner userScanner = new Scanner(System.in);
         System.out.println("Please provide the name of the member whose schedule to check.");
         String name = userScanner.next();
-        ResultSet matchingMember = statement.executeQuery("SELECT memberID FROM [tablename-members] WHERE name='" + name + "';");
+        ResultSet matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "';");
         while (!matchingMember.next()) {
             System.out.println("Could not find a member with that name! Please try again.");
             name = userScanner.next();
-            matchingMember = statement.executeQuery("SELECT memberID FROM [tablename-members] WHERE name='" + name + "';");
+            matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "';");
         }
+        System.out.println(name + "'s Schedule during November:");
         while (matchingMember.next()) {
-            ResultSet membersCourses = statement.executeQuery("SELECT * FROM ([tablename-members] JOIN [tablename-packages] ON ");
+            ResultSet membersCourses = statement.executeQuery("SELECT lexc.course.name, lexc.course.start_date, lexc.course.end_date, lexc.course.start_time, lexc.course.duration FROM " +
+                    "(" +
+                    "(" +
+                    "(" +
+                    "(" +
+                    "lexc.member JOIN lexc.subscription ON lexc.member.member_id=subscription.member_id" +
+                    ")" +
+                    " JOIN lexc.package ON lexc.subscription.package_id=package.package_id" +
+                    ")" +
+                    " JOIN lexc.coursepackage ON lexc.package.package_id=lexc.coursepackage.package_id" +
+                    ")" +
+                    " JOIN lexc.course ON lexc.coursepackage.course_id=lexc.course.course_id" +
+                    ")" +
+                    " WHERE lexc.member.member_id=" + matchingMember.getInt("member_id")) +
+                    ";";
+            while (membersCourses.next()) {
+                CourseData targetCourse = new CourseData();
+                targetCourse.setCourseName(membersCourses.getString("lexc.course.name"));
+                targetCourse.setStartDate(membersCourses.getString("lexc.course.start_date"));
+                targetCourse.setEndDate(membersCourses.getString("lexc.course.end_date"));
+                targetCourse.setDuration(membersCourses.getInt("lexc.course.duration"));
+                //TODO: If start date is during or before November, and end date is during or after November...
+                //TODO: Display time better (actually add duration to start time)
+                System.out.println(targetCourse.getCourseName() + " from " + targetCourse.getStartDate() + " to " + targetCourse.getEndDate() + ", starting at " + targetCourse.getStartTime() + " and ending at " + targetCourse.getStartTime() + targetCourse.getDuration());
+            }
         }
     }
 
     private static void queryOne() {
         System.out.println("Members with Negative Balances");
         System.out.println("NAME - PHONE #");
-        ResultSet courses = statement.executeQuery("SELECT name, phone FROM [tablename-members] WHERE ");
+        ResultSet courses = statement.executeQuery("SELECT name, phone FROM lexc.members WHERE acc_balance<0;");
         while (courses.next()) {
             MemberData nextMember = new MemberData();
             nextMember.setName(courses.getString("name"));

@@ -1,11 +1,13 @@
 import java.sql.Date;
 import java.sql.Time;
+import java.time.DayOfWeek;
 
 public class CourseData {
     private String courseName;
     private Date startDate;
     private Date endDate;
     private Time startTime;
+    private DayOfWeek startDay;
     private int duration;
     private int maxMembers;
     private int trainerID;
