@@ -10,6 +10,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.TreeMap;
 
 public class Prog4 {
     private static Statement statement = null; // The one statement we use for JDBC interaction.
@@ -45,12 +46,14 @@ public class Prog4 {
     }
 
     public static void main(String[] args) {
+
         if (args.length == 2) {
             setupJDBC(args[0], args[1]);
         } else {
             System.out.println("\nUsage:  java JDBC <username> <password>\n" + "    where <username> is your Oracle DBMS" + " username,\n    and <password> is your Oracle" + " password (not your system password).\n");
             System.exit(-1);
         }
+
 
 
         System.out.println("Welcome to Program 4.");
@@ -137,7 +140,7 @@ public class Prog4 {
             while (trainerSchedules.next()) {
                 String rowsTrainer = trainerSchedules.getString("lexc.trainer.name");
                 CourseData thisCourse = new CourseData();
-                thisCourse.setStartTime(trainerSchedules.getString());
+                //thisCourse.setStartTime(trainerSchedules.getString());
                 if (!schedulingMap.containsKey(rowsTrainer)) {
                     schedulingMap.put(rowsTrainer, new ArrayList<>());
                 }
@@ -246,27 +249,34 @@ public class Prog4 {
 
     private static void addMember() { //get max member number
         MemberData newMember = new MemberData();
+        newMember.setMemberID(getNextMemberID());
         Scanner userScanner = new Scanner(System.in);
         System.out.println("Please input the name of the member to add.");
-        String name = userScanner.next();
+        String name = userScanner.nextLine();
         newMember.setName(name);
         System.out.println("Please input " + name + "'s phone number.");
-        newMember.setPhoneNum(userScanner.next());
+        String number = userScanner.nextLine();
+        newMember.setPhoneNum(number);
         newMember.setAcctBalance(0);
         newMember.setMoneySpent(0);
         newMember.setMembershipName("");
-
-        System.out.println(newMember.insertString());
-
-
-
-
         try {
-            ResultSet courses = statement.executeQuery("SELECT * from [tablename-courses];");
-            while (courses.next())
-                //TODO: Evaluate new MemberID. Need to see the existing member IDs and get the next one.
-
-                statement.execute("INSERT INTO lexc.members VALUES ");
+            ResultSet packages = statement.executeQuery("SELECT * from lexc.Package");
+            TreeMap<Integer, Integer> package_prices = new TreeMap<>();
+            if (packages != null) {
+                while (packages.next()) {
+                    int curID = packages.getInt("package_id");
+                    int curPrice = packages.getInt("price");
+                    package_prices.put(curID, curPrice);
+                    System.out.printf("%-6d\t%-20s\t%-6d%n", curID, packages.getString("name"), curPrice);
+                }
+            }
+            System.out.println("Enter the Package ID of your choosing:");
+            int package_id = Integer.parseInt(userScanner.nextLine());
+            int price = package_prices.get(package_id);
+            newMember.setAcctBalance(newMember.getAcctBalance() + price);
+            statement.execute("INSERT INTO lexc.Member VALUES " + newMember.insertString());
+            statement.execute("INSERT INTO lexc.Subscription VALUES (" + newMember.getMemberID() + ", " + package_id + ")");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -274,10 +284,29 @@ public class Prog4 {
 
     }
 
+    private static int getNextMemberID() {
+        ResultSet max_id = null;
+        int retval = -1;
+        try {
+            max_id = statement.executeQuery("SELECT MAX(MEMBER_ID) from lexc.Member");
+            if (max_id != null) {
+                while (max_id.next()) {
+                    retval = max_id.getInt("MAX(member_id)");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Error getting the max member_id from the Member table");
+        }
+        return retval + 1;
+    }
+
+
+
     private ArrayList<CourseData> courses() {
         ArrayList<CourseData> retVal = new ArrayList<>();
         try {
-            ResultSet courses = statement.executeQuery("SELECT * from [tablename-courses];");
+            ResultSet courses = statement.executeQuery("SELECT * from [tablename-courses]");
             while (courses.next()) {
                 CourseData thisCourse = new CourseData();
                 thisCourse.setCourseName(courses.getString("name"));
@@ -294,3 +323,4 @@ public class Prog4 {
 
 
 }
+
