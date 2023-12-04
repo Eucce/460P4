@@ -284,6 +284,79 @@ public class Prog4 {
 
     }
 
+    private static void deleteMember() {
+        try {
+            ResultSet members = statement.executeQuery("SELECT * from lexc.Member");
+            if (members != null) {
+                while (members.next()) {
+                    int curMemID = members.getInt("member_id");
+                    String curName = members.getString("name");
+                    System.out.printf("%-6d\t%-20s%n", curMemID, curName);
+                }
+            }
+            System.out.println("Enter a member ID to delete:");
+            Scanner scn = new Scanner(System.in);
+            int memID = Integer.parseInt(scn.nextLine());
+            checkEquipmentCheckouts(memID);
+            boolean deletable = checkTransactionHistory(memID);
+            checkInCourses();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error in deleting a member");
+        }
+    }
+
+    private static void checkInCourses() {
+
+    }
+
+    private static boolean checkTransactionHistory(int memID) {
+        try {
+            ResultSet member = statement.executeQuery("select Acc_Balance, name from lexc.Member where member_id = " + memID);
+            if (member != null) {
+                while (member.next()) {
+                    int amountOwed = member.getInt("Acc_Balance");
+                    if (amountOwed > 0) {
+                        String name = member.getString("name");
+                        System.out.println("The member '" + name + "' owes a balance of $" + amountOwed);
+                        System.out.println("This member cannot be deleted until the balance is paid off");
+                        return false;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Could not find the member with the id - " + memID);
+        }
+        return true;
+    }
+
+    private static void checkEquipmentCheckouts(int memID) {
+        try {
+            ResultSet checkouts = statement.executeQuery("SELECT * from lexc.checkout where member_id = " + memID);
+            if (checkouts != null) {
+                while (checkouts.next()) {
+                    if (checkouts.getTimestamp("In_time") == null) {
+                        decreaseItemStock(checkouts.getInt("Item_ID"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Error in searching for checkouts by member with id - " + memID);
+        }
+    }
+
+    private static void decreaseItemStock(int  itemID) {
+
+        try {
+            statement.executeQuery("update lexc.Equipment set stock = stock - 1 where item_id = " + itemID);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error Decreasing the missing item's stock");
+        }
+    }
+
     private static int getNextMemberID() {
         ResultSet max_id = null;
         int retval = -1;
@@ -317,9 +390,7 @@ public class Prog4 {
         return retVal;
     }
 
-    private static void deleteMember() {
 
-    }
 
 
 }
