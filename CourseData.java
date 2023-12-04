@@ -3,6 +3,7 @@ import java.sql.Time;
 import java.time.DayOfWeek;
 
 public class CourseData {
+    private int courseID;
     private String courseName;
     private Date startDate;
     private Date endDate;
@@ -11,6 +12,10 @@ public class CourseData {
     private int duration;
     private int maxMembers;
     private int trainerID;
+
+    public int getCourseID() {return courseID;}
+
+    public void setCourseID(int ID) {this.courseID = ID;}
 
     public String getCourseName() {
         return courseName;
@@ -69,5 +74,13 @@ public class CourseData {
 
     public void setTrainerID(int trainerID) {
         this.trainerID = trainerID;
+    }
+
+    public String insertString() { //incomplete
+        String retval = "[";
+        retval += courseID + ", " + courseName + ", " + startTime + ", " ;
+
+
+        return retval;
     }
 }
