@@ -291,7 +291,6 @@ public class Prog4 {
             int package_id = Integer.parseInt(userScanner.nextLine());
             int price = package_prices.get(package_id);
             newMember.setAcctBalance(newMember.getAcctBalance() + price);
-            System.out.println(newMember.insertString());
             statement.execute("INSERT INTO lexc.Member VALUES " + newMember.insertString());
             statement.execute("INSERT INTO lexc.Subscription VALUES (" + newMember.getMemberID() + ", " + package_id + ")");
             System.out.println("Member added successfully!");
