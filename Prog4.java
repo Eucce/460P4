@@ -128,11 +128,11 @@ public class Prog4 {
             Scanner userScanner = new Scanner(System.in);
             System.out.println("Please provide the name of the member whose spending to check.");
             String name = userScanner.next();
-            ResultSet matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "';");
+            ResultSet matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "'");
             while (!matchingMember.next()) {
                 System.out.println("Could not find a member with that name! Please try again.");
                 name = userScanner.next();
-                matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "';");
+                matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "'");
             }
             HashMap<String, Integer> spentOnInstructors = new HashMap<>();
             ResultSet spendingPerInstructor = statement.executeQuery("SELECT lexc.trainer.name, lexc.transaction.amount FROM " +
@@ -153,7 +153,7 @@ public class Prog4 {
             ResultSet trainerSchedules = statement.executeQuery("SELECT lexc.trainer.name, lexc.course.name, lexc.course.start_time, lexc.course.duration, lexc.course.start_date, lexc.course.end_date FROM " +
                     "(" +
                     "lexc.trainer JOIN lexc.course ON lexc.course.trainer_id=lexc.trainer.trainer_id" +
-                    ");");
+                    ")");
             while (trainerSchedules.next()) {
                 String rowsTrainer = trainerSchedules.getString("lexc.trainer.name");
                 if (!schedulingMap.containsKey(rowsTrainer)) {
@@ -229,7 +229,7 @@ public class Prog4 {
         try {
             System.out.println("Members with Negative Balances");
             System.out.println("NAME - PHONE #");
-            ResultSet courses = statement.executeQuery("SELECT name, telephone_no FROM lexc.member WHERE acc_balance<0;");
+            ResultSet courses = statement.executeQuery("SELECT name, telephone_no FROM lexc.member WHERE acc_balance<0");
             while (courses.next()) {
                 MemberData nextMember = new MemberData();
                 nextMember.setName(courses.getString("name"));
