@@ -307,7 +307,7 @@ public class Prog4 {
             if (members != null) {
                 System.out.println();
                 System.out.printf("%-10s\t%-20s\t%-10s\t%-14s%n", "Member ID", "Name", "Phone Num", "Acct Balance");
-                System.out.println("--------------------------------------------------------------------");
+                System.out.println("--------------------------------------------------------------------------");
                 while (members.next()) {
                     int curMemID = members.getInt("member_id");
                     String curName = members.getString("name");
