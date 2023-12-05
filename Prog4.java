@@ -292,9 +292,9 @@ public class Prog4 {
             int price = package_prices.get(package_id);
             newMember.setAcctBalance(newMember.getAcctBalance() + price);
             System.out.println(newMember.insertString());
-            Boolean res = statement.execute("INSERT INTO lexc.Member VALUES " + newMember.insertString());
-            //System.out.println(res);
+            statement.execute("INSERT INTO lexc.Member VALUES " + newMember.insertString());
             statement.execute("INSERT INTO lexc.Subscription VALUES (" + newMember.getMemberID() + ", " + package_id + ")");
+            System.out.println("Member added successfully!");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -325,6 +325,7 @@ public class Prog4 {
             removeSubscriptions(memID);
             if (deletable) {
                 statement.execute("DELETE from lexc.Member where member_id = " + memID);
+                System.out.println("Member deleted successfully!");
             }
         } catch (Exception e) {
             e.printStackTrace();
