@@ -61,7 +61,7 @@ public class Prog4 {
         System.out.println("4. View Indebted Members (query 1)");
         System.out.println("5. View Member Schedule (query 2)");
         System.out.println("6. View Trainer Hours (query 3)");
-        System.out.println("7. Mystery Query (TODO: query 4)");
+        System.out.println("7. Total Spend Per Insturctor (query 4)");
         System.out.println("You may also type 'exit' to quit.");
 
         Scanner userScanner = new Scanner(System.in);
@@ -124,7 +124,27 @@ public class Prog4 {
     }
 
     private static void queryFour() {
-
+        try {
+            Scanner userScanner = new Scanner(System.in);
+            System.out.println("Please provide the name of the member whose spending to check.");
+            String name = userScanner.next();
+            ResultSet matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "';");
+            while (!matchingMember.next()) {
+                System.out.println("Could not find a member with that name! Please try again.");
+                name = userScanner.next();
+                matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "';");
+            }
+            HashMap<String, Integer> spentOnInstructors = new HashMap<>();
+            ResultSet spendingPerInstructor = statement.executeQuery("SELECT lexc.trainer.name, lexc.transaction.amount FROM " +
+                    "(" +
+                    "(" +
+                    "(" +
+                    "(" +
+                    "(lexc.member JOIN lexc.transaction");
+        } catch (Exception e) {
+            System.out.println("Error in Query Four");
+            e.printStackTrace();
+        }
     }
 
     private static void queryThree() {
@@ -156,7 +176,7 @@ public class Prog4 {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error in function 'queryThree()'");
+            System.out.println("Error in Query 3");
             e.printStackTrace();
         }
     }
@@ -200,7 +220,7 @@ public class Prog4 {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Error in 'queryTwo()'");
+            System.out.println("Error in Query Two");
             e.printStackTrace();
         }
     }
@@ -217,7 +237,7 @@ public class Prog4 {
                 System.out.println(nextMember.getName() + " - " + nextMember.getPhoneNum());
             }
         } catch (Exception e) {
-            System.out.println("Error in 'queryOne()'");
+            System.out.println("Error in Query One");
             e.printStackTrace();
         }
     }
