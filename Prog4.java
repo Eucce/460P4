@@ -244,17 +244,30 @@ public class Prog4 {
     }
 
     private static void addCourse() {
+        Scanner scn = new Scanner(System.in);
+        CourseData newCourse = new CourseData();
+        newCourse.setCourseID(getNextID("Course"));
+        System.out.println("Please input the name of the course to add:");
+        String name = scn.nextLine();
+        newCourse.setCourseName(name);
+        System.out.println("Please input the start time in the form 'H:MM PM/AM':");
+        String start_time = scn.nextLine();
+        newCourse.setStartTime(start_time);
+        System.out.println("Enter a duration for the course:");
+        int duration = Integer.parseInt(scn.nextLine());
+        newCourse.setDuration(duration);
 
     }
 
-    private static void addMember() { //get max member number
+
+    private static void addMember() {
         MemberData newMember = new MemberData();
-        newMember.setMemberID(getNextMemberID());
+        newMember.setMemberID(getNextID("Member"));
         Scanner userScanner = new Scanner(System.in);
-        System.out.println("Please input the name of the member to add.");
+        System.out.println("Please input the name of the member to add:");
         String name = userScanner.nextLine();
         newMember.setName(name);
-        System.out.println("Please input " + name + "'s phone number.");
+        System.out.println("Please input " + name + "'s phone number:");
         String number = userScanner.nextLine();
         newMember.setPhoneNum(number);
         newMember.setAcctBalance(0);
@@ -264,18 +277,23 @@ public class Prog4 {
             ResultSet packages = statement.executeQuery("SELECT * from lexc.Package");
             TreeMap<Integer, Integer> package_prices = new TreeMap<>();
             if (packages != null) {
+                System.out.println();
+                System.out.printf("%-12s\t%-20s\t%-8s%n", "Package ID", "Package Name", "Price");
+                System.out.println("------------------------------------------------");
                 while (packages.next()) {
                     int curID = packages.getInt("package_id");
                     int curPrice = packages.getInt("price");
                     package_prices.put(curID, curPrice);
-                    System.out.printf("%-6d\t%-20s\t%-6d%n", curID, packages.getString("name"), curPrice);
+                    System.out.printf("%-12d\t%-20s\t%-8d%n", curID, packages.getString("name"), curPrice);
                 }
             }
             System.out.println("Enter the Package ID of your choosing:");
             int package_id = Integer.parseInt(userScanner.nextLine());
             int price = package_prices.get(package_id);
             newMember.setAcctBalance(newMember.getAcctBalance() + price);
-            statement.execute("INSERT INTO lexc.Member VALUES " + newMember.insertString());
+            System.out.println(newMember.insertString());
+            Boolean res = statement.execute("INSERT INTO lexc.Member VALUES " + newMember.insertString());
+            //System.out.println(res);
             statement.execute("INSERT INTO lexc.Subscription VALUES (" + newMember.getMemberID() + ", " + package_id + ")");
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -288,10 +306,15 @@ public class Prog4 {
         try {
             ResultSet members = statement.executeQuery("SELECT * from lexc.Member");
             if (members != null) {
+                System.out.println();
+                System.out.printf("%-10s\t%-20s\t%-10s\t%-14s%n", "Member ID", "Name", "Phone Num", "Acct Balance");
+                System.out.println("--------------------------------------------------------------------");
                 while (members.next()) {
                     int curMemID = members.getInt("member_id");
                     String curName = members.getString("name");
-                    System.out.printf("%-6d\t%-20s%n", curMemID, curName);
+                    String phoneNum = members.getString("telephone_no");
+                    int acct_balance = members.getInt("acc_balance");
+                    System.out.printf("%-10d\t%-20s\t%-10s\t%-14d%n", curMemID, curName, phoneNum, acct_balance);
                 }
             }
             System.out.println("Enter a member ID to delete:");
@@ -299,15 +322,23 @@ public class Prog4 {
             int memID = Integer.parseInt(scn.nextLine());
             checkEquipmentCheckouts(memID);
             boolean deletable = checkTransactionHistory(memID);
-            checkInCourses();
+            removeSubscriptions(memID);
+            if (deletable) {
+                statement.execute("DELETE from lexc.Member where member_id = " + memID);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error in deleting a member");
         }
     }
 
-    private static void checkInCourses() {
-
+    private static void removeSubscriptions(int memID) {
+        try {
+            statement.executeQuery("DELETE from lexc.Subscription where member_id = " + memID);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error in removing member " + memID + "'s subscriptions");
+        }
     }
 
     private static boolean checkTransactionHistory(int memID) {
@@ -357,11 +388,11 @@ public class Prog4 {
         }
     }
 
-    private static int getNextMemberID() {
+    private static int getNextID(String table) {
         ResultSet max_id = null;
         int retval = -1;
         try {
-            max_id = statement.executeQuery("SELECT MAX(MEMBER_ID) from lexc.Member");
+            max_id = statement.executeQuery("SELECT MAX(MEMBER_ID) from lexc." + table);
             if (max_id != null) {
                 while (max_id.next()) {
                     retval = max_id.getInt("MAX(member_id)");
@@ -394,4 +425,5 @@ public class Prog4 {
 
 
 }
+
 
