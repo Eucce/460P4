@@ -9,7 +9,7 @@ public class CourseData {
     private Date endDate;
     private Time startTime;
     private DayOfWeek startDay;
-    private int duration;
+    private float duration;
     private int maxMembers;
     private int trainerID;
 
@@ -52,11 +52,11 @@ public class CourseData {
         this.startTime = Time.valueOf(timePart);
     }
 
-    public int getDuration() {
+    public float getDuration() {
         return duration;
     }
 
-    public void setDuration(int duration) {
+    public void setDuration(float duration) {
         this.duration = duration;
     }
 
