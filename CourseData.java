@@ -76,11 +76,11 @@ public class CourseData {
         this.trainerID = trainerID;
     }
 
-    public String insertString() { //incomplete
-        String retval = "[";
-        retval += courseID + ", " + courseName + ", " + startTime + ", " ;
-
-
+    public String insertString() {
+        String retval = "(";
+        retval += courseID + ", " + courseName + ", '" + startTime + "', "
+            + duration + ", '" + startDate + "', '" + endDate + "', " + maxMembers
+            + ", " + trainerID + ")";
         return retval;
     }
 }

@@ -263,6 +263,7 @@ public class Prog4 {
     }
 
     private static void deleteCourse() {
+        Scanner scn = new Scanner(System.in);
 
     }
 
@@ -279,8 +280,46 @@ public class Prog4 {
         System.out.println("Enter a duration for the course:");
         int duration = Integer.parseInt(scn.nextLine());
         newCourse.setDuration(duration);
+        System.out.println("Enter a start date for the course in the form 'YYYY-MM-DD':");
+        String start_date = scn.nextLine();
+        newCourse.setStartDate(Date.valueOf(start_date));
+        System.out.println("Enter a end date for the course in the form 'YYYY-MM-DD':");
+        String end_date = scn.nextLine();
+        newCourse.setEndDate(Date.valueOf(end_date));
+        System.out.println("Enter the maximum number of members that can take this course:");
+        int maxMems = Integer.parseInt(scn.nextLine());
+        newCourse.setMaxMembers(maxMems);
+        System.out.println("Select a Trainer ID from this list corresponding to the trainer that will teach this course:");
+        listTrainers();
+        int trainer_id = Integer.parseInt(scn.nextLine());
+        newCourse.setTrainerID(trainer_id);
 
+        try {
+            statement.executeQuery("insert into lexc.Course values " + newCourse.insertString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error inserting this course into the table.");
+        }
+        
     }
+
+    private static void listTrainers() {
+        try {
+            ResultSet trainers = statement.executeQuery("select * from lexc.trainer");
+            if (trainers != null) {
+                System.out.printf("%-12s\t%-20s%n", "Trainer ID", "Name");
+                System.out.println("---------------------------------------------");
+                while (trainers.next()) {
+                    System.out.printf("%-12d\t%-20s%n", trainers.getInt("trainer_id"), trainers.getString("name"));
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error listing all the trainers in the database.");
+        }
+    }
+
 
 
     private static void addMember() {
