@@ -143,26 +143,26 @@ public class Prog4 {
                 response = userScanner.next();
                 if (response.equalsIgnoreCase("add")) {
                     try {
-                    	Packages.addPackage(statement);
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+                        addPackage();
+                    } catch (SQLException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 } else if (response.equalsIgnoreCase("update")) {
                     try {
-                    	Packages.updatePackage(statement);
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+                        updatePackage();
+                    } catch (SQLException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
                 } else if (response.equalsIgnoreCase("delete")) {
                     try {
-                    	Packages.deletePackage(statement);
-					} catch (SQLException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-                } 
+                        deletePackage();
+                    } catch (SQLException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
             } else if (response.equalsIgnoreCase("4")) {
                 queryNegativeBalances();
             } else if (response.equalsIgnoreCase("5")) {
@@ -200,13 +200,13 @@ public class Prog4 {
     *---------------------------------------------------------------------------*/
     private static void endProgram() {
         System.out.println(" --- Thanks for using Program 4 --- ");
-        try {
-            statement.close();
-            connection.close();
-        } catch (SQLException e) {
-            System.out.println("Couldn't close the DBMS connection!");
-            e.printStackTrace();
-        }
+        //try {
+        //statement.close();
+        //connection.close();
+//        } catch (SQLException e) {
+//            System.out.println("Couldn't close the DBMS connection!");
+//            e.printStackTrace();
+//        }
         System.exit(0);
     }
 
@@ -573,8 +573,7 @@ public class Prog4 {
             ResultSet members = statement.executeQuery("select * from lexc.Member where member_id = " + member_id);
             if (members != null) {
                 while (members.next()) {
-                    System.out.printf("%-12d%-20s%-20s%n", members.getInt("member_id"),
-                            members.getString("name"), members.getString("telephone_num"));
+                    System.out.printf("%-12d%-20s%-20s%n", members.getInt("member_id"), members.getString("name"), members.getString("telephone_num"));
                 }
             }
         } catch (Exception e) {
@@ -987,6 +986,181 @@ public class Prog4 {
         calendar.add(Calendar.MINUTE, (int) (hourVal % 1));
         return calendar.get(Calendar.HOUR_OF_DAY) + ":00";
     }
+
+
+    // Adding, Deleting, Updating Packages
+
+    public static void deletePackage() throws SQLException {
+        Scanner scan = new Scanner(System.in);
+        System.out.println("Which package do you want to delete?");
+        String query1 = "SELECT Package_ID,Name FROM lexc.Package";
+
+        ResultSet answer = Prog4.statement.executeQuery(query1);
+        while (answer.next()) {
+            System.out.println(answer.getString(1));
+        }
+
+        String delPack = scan.nextLine();
+
+        if (checkDatesPackage(delPack)) {
+            if (checkRegistration(delPack)) deleteWhole(delPack);
+            else System.out.println("People are currently enrolled in that class");
+        } else System.out.println("Package currenlty has classes which are ongoing");
+
+        scan.close();
+    }
+
+    public static boolean checkDatesPackage(String Package) throws SQLException {
+        boolean valid = true;
+        String query1 = "SELECT course_id FROM lexc.coursepackage " + "WHERE package_id=" + Package;
+        ResultSet answer = statement.executeQuery(query1);
+        ArrayList<Integer> courseIdsToCheck = new ArrayList<>();
+        if (answer != null) {
+            while (answer.next()) {
+                courseIdsToCheck.add(answer.getInt("course_id"));
+            }
+            for (Integer courseID : courseIdsToCheck) {
+                valid = checkDates(courseID);
+                if (valid == false) {
+                    break;
+                }
+            }
+        } else System.out.println("Error printing the members enrolled in course " + Package);
+        return valid;
+    }
+
+    private static boolean checkDates(int courseID) throws SQLException {
+        long millis = System.currentTimeMillis();
+        Date curDate = new Date(millis);
+        String query1 = "SELECT End_Date FROM LEXC.COURSE " + "WHERE course_id = %s";
+        query1 = String.format(query1, courseID);
+        ResultSet answer = statement.executeQuery(query1);
+        answer.next();
+        Date endDate = answer.getDate(1);
+        return curDate.before(endDate);
+
+    }
+
+    public static boolean checkRegistration(String Package) throws SQLException {
+        String query1 = "SELECT COUNT(*) FROM lexc.Subscription" + " WHERE Package_ID = %s";
+        query1 = String.format(query1, Package);
+        ResultSet answer = Prog4.statement.executeQuery(query1);
+        answer.next();
+        if (answer.getInt(1) != 0) return false;
+        else return true;
+
+    }
+
+    private static void deleteWhole(String Package) throws SQLException {
+        // TODO Auto-generated method stub
+        String query = "DELETE FROM lexc.CoursePackage WHERE Package_ID = %s";
+        query = String.format(query, Package);
+        Prog4.statement.executeQuery(query);
+
+        String query2 = "DELETE FROM lexc.Package WHERE Package_ID = %s";
+        query2 = String.format(query2, Package);
+        Prog4.statement.executeQuery(query2);
+
+
+    }
+
+
+    public static void updatePackage() throws SQLException {
+        Scanner scan = new Scanner(System.in);  // Create a Scanner object
+        ResultSet answer = null;
+        String query1 = "SELECT Package_ID,Name FROM lexc.Package";
+
+        System.out.println("Avaiable packages.....");
+        answer = Prog4.statement.executeQuery(query1);
+        while (answer.next()) {
+            System.out.println(answer.getString(1));
+        }
+        System.out.println("Please select a Package you would want to change");
+        String result2 = scan.nextLine();
+        if (Prog4.checkDatesPackage(result2)) {
+            if (Prog4.checkRegistration(result2)) {
+                String query2 = "SELECT Course_ID,Name FROM lexc.Course" + " WHERE End_Date > SYSDATE";
+                answer = Prog4.statement.executeQuery(query2);
+                answer.next();
+                System.out.println("Avaiable courses to add/delete to the Package....");
+                while (answer.next()) {
+                    System.out.println(answer.getString(1) + "\t" + answer.getString(2));
+                }
+                System.out.println("Enter CourseID which you would like to add/delete?");
+                String result4 = scan.nextLine();
+
+
+                System.out.println("Do you want to delete or add onto this package?");
+                String result3 = scan.nextLine();
+                if (result3.toLowerCase() == "add") {
+                    updateHelper(result2, result4, "add");
+
+                } else if (result3.toLowerCase() == "delete") {
+                    updateHelper(result2, result4, "delete");
+                }
+            } else System.out.println("People are currently enrolled in this package");
+
+
+        } else System.out.println("You cannot change this package because all classes involved are terminated");
+
+        scan.close();
+
+    }
+
+    private static void updateHelper(String packageID, String courseID, String str) throws SQLException {
+        // TODO Auto-generated method stub
+        if (str.equals("add")) {
+            String query1 = "INSERT INTO CoursePackage(Package_ID,Course_ID) VALUES " + "VALUES (%s,'%s')";
+            query1 = String.format(query1, packageID, courseID);
+            statement.executeQuery(query1);
+        } else {
+            String query1 = "DELETE FROM lexc.CoursePackage WHERE Package_ID = %s AND Course_ID = %s";
+            query1 = String.format(query1, packageID, courseID);
+            statement.executeQuery(query1);
+
+        }
+    }
+
+    public static void addPackage() throws SQLException {
+        Scanner scan = new Scanner(System.in);
+
+        System.out.println("What do you want the title of the package to be?");
+        String title = scan.nextLine();
+        System.out.println("What do you want the price of the package to be?");
+        int price = scan.nextInt();
+        scan.nextLine();
+
+        String query4 = "SELECT COUNT(*) FROM lexc.Package";
+        ResultSet answer = Prog4.statement.executeQuery(query4);
+        answer.next();
+        int newID = Integer.valueOf(answer.getString(1)) - 1;
+        String query5;
+        query5 = "INSERT INTO Package(Package_ID,Name,Price) " + "VALUES (%s,'%s',%s)";
+        query5 = String.format(query5, newID, title, price);
+        Prog4.statement.executeQuery(query5);
+
+
+        String query1 = "SELECT Course_ID,Name FROM lexc.Course" + " WHERE End_Date > SYSDATE";
+        answer = Prog4.statement.executeQuery(query1);
+        System.out.println("Avaiable courses to build a Package");
+        while (answer.next()) {
+            System.out.println(answer.getString(1) + "\t" + answer.getString(2));
+        }
+        System.out.println("Please enter Course IDs you would want to package together sepearted by commas");
+        String results = scan.nextLine();
+        String[] resultsArr = results.split(",");
+
+        for (int i = 0; i < resultsArr.length; i++) {
+            String query3 = "INSERT INTO lexc.CoursePackage(Package_ID,Course_ID) " + "VALUES (%s,%s)";
+            query3 = String.format(query3, newID, resultsArr[i]);
+            Prog4.statement.executeQuery(query3);
+        }
+
+        scan.close();
+
+
+    }
+
 }
 
 
