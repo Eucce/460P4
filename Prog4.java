@@ -100,7 +100,7 @@ public class Prog4 {
         System.out.println("4. View Indebted Members (query 1)");
         System.out.println("5. View Member Schedule (query 2)");
         System.out.println("6. View Trainer Hours (query 3)");
-        System.out.println("7. Total Spend Per Insturctor (query 4)");
+        System.out.println("7. Total Spend Per Instructor (query 4)");
         System.out.println("You may also type 'exit' to quit.");
 
         // Begin getting user input.
@@ -244,39 +244,49 @@ public class Prog4 {
     *---------------------------------------------------------------------------*/
     private static void queryMemberSchedule() {
         try {
+            listMembers();
             // Prompt the user for the member name desired.
             Scanner userScanner = new Scanner(System.in);
-            System.out.println("Please provide the name of the member whose schedule to check.");
-            String name = userScanner.next();
+            System.out.println("Please provide the ID of the member whose schedule to check.");
+            String inputID = userScanner.next();
 
-            // Query: Find a member with that name.
-            ResultSet matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "';");
-            // If we don't find one, keep asking for members until we get a valid (matching) name.
-            while (!matchingMember.next()) {
-                System.out.println("Could not find a member with that name! Please try again.");
-                name = userScanner.next();
-                matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "';");
+            ResultSet correspondingMember = statement.executeQuery("SELECT lexc.member.name FROM lexc.member WHERE member_id=" + Integer.parseInt(inputID));
+            while (!correspondingMember.next()) {
+                System.out.println("Could not find a member by that ID!");
+                inputID = userScanner.next();
+                correspondingMember = statement.executeQuery("SELECT lexc.member.name FROM lexc.member WHERE member_id=" + Integer.parseInt(inputID));
             }
+
+            correspondingMember.beforeFirst(); // We need to reset after checking if empty.
+
+            String name = "";
+            while (correspondingMember.next()) {
+                name = correspondingMember.getString("name");
+            }
+
 
             System.out.println(name + "'s Schedule during November:");
             int year = Year.now().getValue();
-            while (matchingMember.next()) {
-                // Query: Select the course data from each course associated with a package in a subscription that the member has enrolled in.
-                ResultSet membersCourses = statement.executeQuery("SELECT lexc.course.name, lexc.course.start_date, lexc.course.end_date, lexc.course.start_time, lexc.course.duration FROM " + "(" + "(" + "(" + "(" + "lexc.member JOIN lexc.subscription ON lexc.member.member_id=lexc.subscription.member_id" + ")" + " JOIN lexc.package ON lexc.subscription.package_id=lexc.package.package_id" + ")" + " JOIN lexc.coursepackage ON lexc.package.package_id=lexc.coursepackage.package_id" + ")" + " JOIN lexc.course ON lexc.coursepackage.course_id=lexc.course.course_id" + ")" + " WHERE lexc.member.member_id=" + matchingMember.getInt("member_id"));
-                while (membersCourses.next()) {
-                    // In this case, we need to check some data repeatedly, so we use the CourseData class.
-                    // We set up the CourseData based on the query, then check if it's within the range.
-                    CourseData targetCourse = new CourseData();
-                    targetCourse.setCourseName(membersCourses.getString("lexc.course.name"));
-                    targetCourse.setStartDate(Date.valueOf(membersCourses.getString("lexc.course.start_date")));
-                    targetCourse.setEndDate(Date.valueOf(membersCourses.getString("lexc.course.end_date")));
-                    targetCourse.setDuration(membersCourses.getFloat("lexc.course.duration"));
-                    // If the course started this year or earlier, and it started in November or earlier of that year,
-                    // and it either ends next year, or ends this year during November or later,
-                    // then it's in November - print it as part of the schedule.
-                    if (targetCourse.getStartDate().getYear() <= year && targetCourse.getStartDate().getMonth() <= 10 && (targetCourse.getEndDate().getYear() == year && targetCourse.getEndDate().getMonth() >= 10) || targetCourse.getEndDate().getYear() > year)
-                        System.out.println(targetCourse.getCourseName() + " from " + targetCourse.getStartDate() + " to " + targetCourse.getEndDate() + ", starting at " + targetCourse.getStartTime() + " and ending at " + addTime(targetCourse.getStartTime(), targetCourse.getDuration()));
-                }
+            // Query: Select the course data from each course associated with a package in a subscription that the member has enrolled in.
+            ResultSet membersCourses = statement.executeQuery("SELECT lexc.course.name, lexc.course.start_date, lexc.course.end_date, lexc.course.start_time, lexc.course.duration FROM " + "(" + "(" + "(" + "(" + "lexc.member JOIN lexc.subscription ON lexc.member.member_id=lexc.subscription.member_id" + ")" + " JOIN lexc.package ON lexc.subscription.package_id=lexc.package.package_id" + ")" + " JOIN lexc.coursepackage ON lexc.package.package_id=lexc.coursepackage.package_id" + ")" + " JOIN lexc.course ON lexc.coursepackage.course_id=lexc.course.course_id" + ")" + " WHERE lexc.member.member_id=" + inputID);
+            while (membersCourses.next()) {
+                // In this case, we need to check some data repeatedly, so we use the CourseData class.
+                // We set up the CourseData based on the query, then check if it's within the range.
+                CourseData targetCourse = new CourseData();
+                targetCourse.setCourseName(membersCourses.getString("name"));
+                targetCourse.setStartDate(membersCourses.getDate("start_date"));
+                targetCourse.setStartTime(membersCourses.getString("start_time"));
+                targetCourse.setEndDate(membersCourses.getDate("end_date"));
+                targetCourse.setDuration(membersCourses.getFloat("duration"));
+                // If the course started this year or earlier, and it started in November or earlier of that year,
+                // and it either ends next year, or ends this year during November or later,
+                // then it's in November - print it as part of the schedule.
+                Calendar startCalendar = Calendar.getInstance();
+                startCalendar.setTime(targetCourse.getStartDate());
+                Calendar endCalendar = Calendar.getInstance();
+                endCalendar.setTime(targetCourse.getEndDate());
+                if (startCalendar.get(Calendar.YEAR) <= year && startCalendar.get(Calendar.MONTH) <= 10 && ((endCalendar.get(Calendar.YEAR) == year && endCalendar.get(Calendar.MONTH) >= 10) || endCalendar.get(Calendar.YEAR) > year))
+                    System.out.println(targetCourse.getCourseName() + " from " + targetCourse.getStartDate() + " to " + targetCourse.getEndDate() + ", starting at " + targetCourse.getStartTime() + " and ending at " + addTime(targetCourse.getStartTime(), targetCourse.getDuration()));
             }
         } catch (Exception e) {
             System.out.println("Error in Query Two");
@@ -304,20 +314,20 @@ public class Prog4 {
             HashMap<String, ArrayList<CourseData>> schedulingMap = new HashMap<>();
             // Map from trainer names to a list of courses that trainer teaches.
             // Query: Select the trainer name and course data of every course taught by that trainer.
-            ResultSet trainerSchedules = statement.executeQuery("SELECT lexc.trainer.name, lexc.course.name, lexc.course.start_time, lexc.course.duration, lexc.course.start_date, lexc.course.end_date FROM " + "(" + "lexc.trainer JOIN lexc.course ON lexc.course.trainer_id=lexc.trainer.trainer_id" + ")");
+            ResultSet trainerSchedules = statement.executeQuery("SELECT lexc.trainer.name AS trainerName, lexc.course.name AS courseName, lexc.course.start_time, lexc.course.duration, lexc.course.start_date, lexc.course.end_date FROM " + "(" + "lexc.trainer JOIN lexc.course ON lexc.course.trainer_id=lexc.trainer.trainer_id" + ")");
             while (trainerSchedules.next()) {
                 // Setup a CourseData based on the discovered courses, and add them to the list of courses taught by
                 // the found trainer.
-                String rowsTrainer = trainerSchedules.getString("lexc.trainer.name");
+                String rowsTrainer = trainerSchedules.getString("trainerName");
                 if (!schedulingMap.containsKey(rowsTrainer)) {
                     schedulingMap.put(rowsTrainer, new ArrayList<>());
                 }
                 CourseData nextCourse = new CourseData();
-                nextCourse.setCourseName(trainerSchedules.getString("lexc.course.name"));
-                nextCourse.setStartTime(trainerSchedules.getString("lexc.course.start_time"));
-                nextCourse.setDuration(trainerSchedules.getFloat("lexc.course.duration"));
-                nextCourse.setStartDate(trainerSchedules.getDate("lexc.course.start_date"));
-                nextCourse.setEndDate(trainerSchedules.getDate("lexc.course.end_date"));
+                nextCourse.setCourseName(trainerSchedules.getString("courseName"));
+                nextCourse.setStartTime(trainerSchedules.getString("start_time"));
+                nextCourse.setDuration(trainerSchedules.getFloat("duration"));
+                nextCourse.setStartDate(trainerSchedules.getDate("start_date"));
+                nextCourse.setEndDate(trainerSchedules.getDate("end_date"));
                 schedulingMap.get(rowsTrainer).add(nextCourse);
             }
             int year = Year.now().getValue();
@@ -329,9 +339,14 @@ public class Prog4 {
                     // If it started this year or earlier, and it either ended in December of this year or
                     // ends in a future year, it's part of December.
                     // Print it as part of the trainer's December schedule.
-                    if (nextCourse.getStartDate().getYear() <= year && ((nextCourse.getEndDate().getYear() == year && nextCourse.getEndDate().getMonth() == 11) || nextCourse.getEndDate().getYear() > year))
+                    Calendar startCalendar = Calendar.getInstance();
+                    startCalendar.setTime(nextCourse.getStartDate());
+                    Calendar endCalendar = Calendar.getInstance();
+                    endCalendar.setTime(nextCourse.getEndDate());
+                    if (startCalendar.get(Calendar.YEAR) <= year && startCalendar.get(Calendar.MONTH) <= 11 && ((endCalendar.get(Calendar.YEAR) == year && endCalendar.get(Calendar.MONTH) >= 11) || endCalendar.get(Calendar.YEAR) > year))
                         System.out.println(nextCourse.getCourseName() + " from " + nextCourse.getStartDate() + " to " + nextCourse.getEndDate() + ", starting at " + nextCourse.getStartTime() + " and ending at " + addTime(nextCourse.getStartTime(), nextCourse.getDuration()));
                 }
+                System.out.println();
             }
         } catch (Exception e) {
             System.out.println("Error in Query 3");
@@ -356,21 +371,31 @@ public class Prog4 {
     *---------------------------------------------------------------------------*/
     private static void queryMemberSpending() {
         try {
+            listMembers();
             // Get user input for the desired member name, and find that member, repeating until we do.
             Scanner userScanner = new Scanner(System.in);
-            System.out.println("Please provide the name of the member whose spending to check.");
-            String name = userScanner.next();
-            ResultSet matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "'");
-            while (!matchingMember.next()) {
-                System.out.println("Could not find a member with that name! Please try again.");
-                name = userScanner.next();
-                matchingMember = statement.executeQuery("SELECT memberID FROM lexc.member WHERE name='" + name + "'");
+            System.out.println("Please provide the ID of the member whose spending to check.");
+            String inputID = userScanner.next();
+
+            ResultSet correspondingMember = statement.executeQuery("SELECT name FROM lexc.member WHERE member_id=" + inputID);
+            while (!correspondingMember.next()) {
+                System.out.println("Could not find a member by that ID!");
+                inputID = userScanner.next();
+                correspondingMember = statement.executeQuery("SELECT name FROM lexc.member WHERE member_id=" + inputID);
             }
+
+            correspondingMember.beforeFirst(); // We need to reset after checking if empty.
+
+            String name = "";
+            while (correspondingMember.next()) {
+                name = correspondingMember.getString("name");
+            }
+
             // Map from trainer names to money spent.
             HashMap<String, Integer> spendingMap = new HashMap<>();
             // Select the trainer name and transaction amount from...  deep breath...
             // the courses offered by packages for which that desired member made transactions.
-            ResultSet transactionToTrainerForMember = statement.executeQuery("SELECT lexc.trainer.name, lexc.transaction.amount FROM " + "(" + "(" + "(" + "(" + "(lexc.member JOIN lexc.transaction ON lexc.member.member_id=lexc.transaction.member_id)" + " JOIN lexc.package ON lexc.package.package_id=lexc.transaction.package_id)" + " JOIN lexc.coursepackage ON lexc.coursepackage.package_id=lexc.package.package_id)" + " JOIN lexc.course ON lexc.coursepackage.course_id=lexc.course.course_id)" + " JOIN lexc.trainer ON lexc.trainer.trainer_id=lexc.course.trainer_id)" + " WHERE lexc.member.member_id=" + matchingMember.getInt("member_id"));
+            ResultSet transactionToTrainerForMember = statement.executeQuery("SELECT lexc.trainer.name, lexc.transaction.amount FROM " + "(" + "(" + "(" + "(" + "(lexc.member JOIN lexc.transaction ON lexc.member.member_id=lexc.transaction.member_id)" + " JOIN lexc.package ON lexc.package.package_id=lexc.transaction.package_id)" + " JOIN lexc.coursepackage ON lexc.coursepackage.package_id=lexc.package.package_id)" + " JOIN lexc.course ON lexc.coursepackage.course_id=lexc.course.course_id)" + " JOIN lexc.trainer ON lexc.trainer.trainer_id=lexc.course.trainer_id)" + " WHERE lexc.member.member_id=" + inputID);
             while (transactionToTrainerForMember.next()) {
                 // For each of those name-amount pairs, if that trainer already had recorded spending,
                 // just add to that number. Otherwise, set up the amount.
@@ -496,6 +521,45 @@ public class Prog4 {
     }
 
     /*----------------------------------------------------------------------------
+    |  Method listMembers()
+    |
+    |  Purpose: This function uses the DBMS connection to display a list
+    |           of all current members in the database.
+    |
+    |  Pre-condition: DBMS connection is valid.
+    |
+    |  Post-condition: None.
+    |
+    |  Parameters: None.
+    |
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
+    private static void listMembers() {
+        try {
+            // Query: Get all members.
+            ResultSet members = statement.executeQuery("SELECT * from lexc.Member");
+            // Next, we list off all member.
+            if (members != null) {
+                System.out.println();
+                System.out.printf("%-10s\t%-20s\t%-10s\t%-14s%n", "Member ID", "Name", "Phone Num", "Acct Balance");
+                System.out.println("--------------------------------------------------------------------------");
+                while (members.next()) {
+                    int curMemID = members.getInt("member_id");
+                    String curName = members.getString("name");
+                    String phoneNum = members.getString("telephone_no");
+                    int acct_balance = members.getInt("acc_balance");
+                    System.out.printf("%-10d\t%-20s\t%-10s\t%-14d%n", curMemID, curName, phoneNum, acct_balance);
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error listing all the trainers in the database.");
+        }
+    }
+
+    /*----------------------------------------------------------------------------
     |  Method addMember()
     |
     |  Purpose: This function uses the DBMS connection with user input
@@ -571,21 +635,7 @@ public class Prog4 {
     *---------------------------------------------------------------------------*/
     private static void deleteMember() {
         try {
-            // Query: Get all members.
-            ResultSet members = statement.executeQuery("SELECT * from lexc.Member");
-            // Next, we list off all members so the user can choose which to delete.
-            if (members != null) {
-                System.out.println();
-                System.out.printf("%-10s\t%-20s\t%-10s\t%-14s%n", "Member ID", "Name", "Phone Num", "Acct Balance");
-                System.out.println("--------------------------------------------------------------------------");
-                while (members.next()) {
-                    int curMemID = members.getInt("member_id");
-                    String curName = members.getString("name");
-                    String phoneNum = members.getString("telephone_no");
-                    int acct_balance = members.getInt("acc_balance");
-                    System.out.printf("%-10d\t%-20s\t%-10s\t%-14d%n", curMemID, curName, phoneNum, acct_balance);
-                }
-            }
+            listMembers();
             System.out.println("Enter a member ID to delete:");
             // Get the user's desired ID to delete.
             Scanner scn = new Scanner(System.in);
@@ -770,7 +820,7 @@ public class Prog4 {
     |  Method addTime(Time timeIn, float hourVal)
     |
     |  Purpose: This helper function calculates the result of adding hourVal
-    |           hours to timeIn.
+    |           hours to timeIn. It returns the result as a String.
     |
     |  Pre-condition: None.
     |
@@ -778,15 +828,15 @@ public class Prog4 {
     |
     |  Parameters: The time to add to, and the hours to add.
     |
-    |  Returns: A new Time offset by hourVal.
+    |  Returns: A string corresponding to the time outputted.
     |
     *---------------------------------------------------------------------------*/
-    private static Time addTime(Time timeIn, float hourVal) {
+    private static String addTime(Time timeIn, float hourVal) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(timeIn);
         calendar.add(Calendar.HOUR_OF_DAY, (int) Math.floor(hourVal));
         calendar.add(Calendar.MINUTE, (int) (hourVal % 1));
-        return (Time) calendar.getTime();
+        return calendar.get(Calendar.HOUR_OF_DAY) + ":00";
     }
 }
 

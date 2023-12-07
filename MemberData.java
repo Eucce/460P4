@@ -13,17 +13,29 @@ public class MemberData {
     private int moneySpent;
     private String membershipName;
 
-    public int getAcctBalance() { return acctBalance; }
+    public int getAcctBalance() {
+        return acctBalance;
+    }
 
-    public void setAcctBalance(int amnt) { this.acctBalance = amnt;}
+    public void setAcctBalance(int amnt) {
+        this.acctBalance = amnt;
+    }
 
-    public int getMoneySpent() { return moneySpent; }
+    public int getMoneySpent() {
+        return moneySpent;
+    }
 
-    public void setMoneySpent(int amnt) { this.moneySpent = amnt;}
+    public void setMoneySpent(int amnt) {
+        this.moneySpent = amnt;
+    }
 
-    public String getMembershipName() { return membershipName; }
+    public String getMembershipName() {
+        return membershipName;
+    }
 
-    public void setMembershipName(String n) { this.membershipName = n;}
+    public void setMembershipName(String n) {
+        this.membershipName = n;
+    }
 
     public String getName() {
         return name;

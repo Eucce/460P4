@@ -17,14 +17,18 @@ public class CourseData {
     private Date startDate;
     private Date endDate;
     private Time startTime;
-    private DayOfWeek startDay;
+    //private DayOfWeek startDay;
     private float duration;
     private int maxMembers;
     private int trainerID;
 
-    public int getCourseID() {return courseID;}
+    public int getCourseID() {
+        return courseID;
+    }
 
-    public void setCourseID(int ID) {this.courseID = ID;}
+    public void setCourseID(int ID) {
+        this.courseID = ID;
+    }
 
     public String getCourseName() {
         return courseName;
@@ -55,10 +59,11 @@ public class CourseData {
     }
 
     public void setStartTime(String startTime) {
-        String dayPart = startTime.split(" ")[0];
-        String timePart = startTime.split(" ")[1];
-        this.startDay = DayOfWeek.valueOf(dayPart);
-        this.startTime = Time.valueOf(timePart);
+        // We accidentally missed including day of the week when setting up the SQL database.
+        //String dayPart = startTime.split(" ")[0];
+        String timePart = startTime.split(" ")[0];
+        //this.startDay = DayOfWeek.valueOf(dayPart);
+        this.startTime = Time.valueOf(timePart + ":00");
     }
 
     public float getDuration() {
@@ -103,8 +108,8 @@ public class CourseData {
     public String insertString() {
         String retval = "(";
         retval += courseID + ", " + courseName + ", '" + startTime + "', "
-            + duration + ", '" + startDate + "', '" + endDate + "', " + maxMembers
-            + ", " + trainerID + ")";
+                + duration + ", '" + startDate + "', '" + endDate + "', " + maxMembers
+                + ", " + trainerID + ")";
         return retval;
     }
 }
