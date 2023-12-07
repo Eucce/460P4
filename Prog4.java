@@ -471,8 +471,8 @@ public class Prog4 {
         String dateString = LocalDate.now().toString();
         Date curDate = Date.valueOf(dateString);
         Date courseEndDate = courses_data.get(course_id);
-        int comp = curDate.compareTo(courseEndDate);
-        if (comp < 0) {
+        int comp = compareDates(curDate, courseEndDate);
+        if (comp > 0) {
             System.out.println("This course has not ended and still has the following active members enrolled:");
             findPackageIDs(course_id);
         }
@@ -1159,6 +1159,36 @@ public class Prog4 {
         scan.close();
 
 
+    }
+
+    /*----------------------------------------------------------------------------
+    |  Method compareDates(Date d1, Date d2)
+    |
+    |  Purpose: This function compares two dates to see which comes first, if d1 comes
+    |           first -1 is return otherwise 1 is returned.
+    |
+    |  Pre-condition: Parameters are not null.
+    |
+    |  Post-condition: None.
+    |
+    |  Parameters: Date d1, Date d2: - two dates to be compared.
+    |
+    |  Returns: int: -1 if d1 is before d2, otherwise 1.
+    |
+    *---------------------------------------------------------------------------*/
+    private static int compareDates(Date d1, Date d2) {
+        String date1 = d1.toString();
+        String date2 = d2.toString();
+        String[] d1arr = date1.split("-");
+        String[] d2arr = date2.split("-");
+        if (Integer.parseInt(d1arr[0]) < Integer.parseInt(d2arr[0])) {
+            return -1;
+        } else if (Integer.parseInt(d1arr[1]) < Integer.parseInt(d2arr[1])) {
+            return -1;
+        } else if (Integer.parseInt(d1arr[2]) < Integer.parseInt(d2arr[2])) {
+            return -1;
+        }
+        return 1;
     }
 
 }
