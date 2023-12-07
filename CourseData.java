@@ -107,8 +107,8 @@ public class CourseData {
     *---------------------------------------------------------------------------*/
     public String insertString() {
         String retval = "(";
-        retval += courseID + ", " + courseName + ", '" + startTime + "', "
-                + duration + ", '" + startDate + "', '" + endDate + "', " + maxMembers
+        retval += courseID + ", '" + courseName + "', '" + startTime + "', "
+                + duration + ", DATE '" + startDate + "', DATE '" + endDate + "', " + maxMembers
                 + ", " + trainerID + ")";
         return retval;
     }

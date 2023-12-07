@@ -3,7 +3,7 @@
  * Prog4.java
  * Professor Lester McCann
  * TAs: Zehnyu Qi and Danial Bazmandeh
- * Author: Edan Uccetta
+ * Author: Edan Uccetta, Jake Gridley
  *
  *
  * Allows for various operations on an Oracle
@@ -23,6 +23,7 @@
 
 import java.sql.Date;
 import java.sql.*;
+import java.time.LocalDate;
 import java.time.Year;
 import java.util.*;
 
@@ -429,11 +430,157 @@ public class Prog4 {
         }
     }
 
-    
-
+    /*----------------------------------------------------------------------------
+    |  Method deleteCourse()
+    |
+    |  Purpose: This function displays all the courses in the database to the user,
+    |           and prompts the user to enter the course_id of the course to be deleted.
+    |           It then prints contact info for all members enrolled in the course if it has
+    |           not already ended. After this, the course is deleted from the DB.
+    |
+    |  Pre-condition: DBMS connection is valid.
+    |
+    |  Post-condition: The course has been deleted from the DB.
+    |
+    |  Parameters: None.
+    |
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
     private static void deleteCourse() {
         Scanner scn = new Scanner(System.in);
+        TreeMap<Integer, Date> courses_data = new TreeMap<>();
+        try {
+            ResultSet courses = statement.executeQuery("select * from lexc.Course");
+            if (courses != null) {
+                System.out.println("Select one of the following Course IDs to delete the course:");
+                System.out.printf("%-12s%-20s%-15s%n", "Course ID", "Course Name", "End Date");
+                System.out.println("-------------------------------------------------------");
+                while (courses.next()) {
+                    int curID = courses.getInt("course_id");
+                    Date curDate = courses.getDate("end_date");
+                    courses_data.put(curID, curDate);
+                    System.out.printf("%-12d%-20s%-15s%n", curID, courses.getString("name"), curDate);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error listing the courses.");
+        }
+        int course_id = Integer.parseInt(scn.nextLine());
+        String dateString = LocalDate.now().toString();
+        Date curDate = Date.valueOf(dateString);
+        Date courseEndDate = courses_data.get(course_id);
+        int comp = curDate.compareTo(courseEndDate);
+        if (comp < 0) {
+            System.out.println("This course has not ended and still has the following active members enrolled:");
+            findPackageIDs(course_id);
+        }
+        // delete the course
+        try {
+            statement.executeQuery("delete from lexc.Course where course_id = " + course_id);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error deleted the course " + course_id);
+        }
+        System.out.println("The course " + course_id + " has been deleted");
 
+    }
+
+
+    /*----------------------------------------------------------------------------
+    |  Method findPackageIDs(int course_id)
+    |
+    |  Purpose: This function finds all the package_ids from the CoursePackage table
+    |           where the parameter is equal to the course_id in CoursePackage. This
+    |           allows the program to find the members enrolled in the given course.
+    |
+    |  Pre-condition: DBMS connection is valid.
+    |
+    |  Post-condition: None.
+    |
+    |  Parameters: int course_id: - This parameter is used in the query string to find the
+    |                               correct Packages that this course is a part of.
+    |
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
+    private static void findPackageIDs(int course_id) {
+        try {
+            ResultSet pack_ids = statement.executeQuery("select package_id from lexc.CoursePackage where course_id = " + course_id);
+            if (pack_ids != null) {
+                while (pack_ids.next()) {
+                    int curPID = pack_ids.getInt("package_id");
+                    getMemberIDs(curPID);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error printing the members enrolled in course " + course_id);
+        }
+    }
+
+    /*----------------------------------------------------------------------------
+    |  Method getMemberIDs()
+    |
+    |  Purpose: This function finds all the member_ids of the members that are enrolled in
+    |           the specific package given as a parameter.
+    |
+    |  Pre-condition: DBMS connection is valid.
+    |
+    |  Post-condition: None.
+    |
+    |  Parameters: int package_id: - This parameter is used in the query string to find the
+    |                                correct member_ids that are enrolled in this package.
+    |
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
+    private static void getMemberIDs(int package_id) {
+        try {
+            ResultSet member_ids = statement.executeQuery("select member_id from lexc.Subscription where package_id = " + package_id);
+            if (member_ids != null) {
+                System.out.printf("%-12s%-20s%-20s%n", "Member ID", "Name", "Phone Num");
+                while (member_ids.next()) {
+                    int curMID = member_ids.getInt("member_id");
+                    printMemberInfo(curMID);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error getting member ids associated with the package " + package_id);
+        }
+    }
+
+    /*----------------------------------------------------------------------------
+    |  Method printMemberInfo(int member_id)
+    |
+    |  Purpose: This function prints the name and phone num of a single member
+    |           associated with the member_id given as a parameter.
+    |
+    |  Pre-condition: DBMS connection is valid.
+    |
+    |  Post-condition: None.
+    |
+    |  Parameters: int member_id: - This parameter is used in the query string to find the
+    |                                attributes of the member in the member table with this id.
+    |
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
+    private static void printMemberInfo(int member_id) {
+        try {
+            ResultSet members = statement.executeQuery("select * from lexc.Member where member_id = " + member_id);
+            if (members != null) {
+                while (members.next()) {
+                    System.out.printf("%-12d%-20s%-20s%n", members.getInt("member_id"),
+                            members.getString("name"), members.getString("telephone_num"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error getting member info associated with the member " + member_id);
+        }
     }
 
     /*----------------------------------------------------------------------------
@@ -805,10 +952,10 @@ public class Prog4 {
         int retval = -1;
         try {
             // Query: Get the max found member_id in the desired table.
-            max_id = statement.executeQuery("SELECT MAX(MEMBER_ID) from lexc." + table);
+            max_id = statement.executeQuery("SELECT MAX(" + table + "_id) from lexc." + table);
             if (max_id != null) {
                 while (max_id.next()) {
-                    retval = max_id.getInt("MAX(member_id)");
+                    retval = max_id.getInt("MAX(" + table + "_id)");
                 }
             }
         } catch (SQLException e) {
