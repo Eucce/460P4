@@ -142,21 +142,21 @@ public class Prog4 {
                 response = userScanner.next();
                 if (response.equalsIgnoreCase("add")) {
                     try {
-                    	Packages.addPackage();
+                    	Packages.addPackage(statement);
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
                 } else if (response.equalsIgnoreCase("update")) {
                     try {
-                    	Packages.updatePackage();
+                    	Packages.updatePackage(statement);
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
                 } else if (response.equalsIgnoreCase("delete")) {
                     try {
-                    	Packages.deletePackage();
+                    	Packages.deletePackage(statement);
 					} catch (SQLException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
