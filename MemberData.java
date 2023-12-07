@@ -1,3 +1,10 @@
+/*----------------------------------------------------------------------------
+|  Class MemberData
+|
+|  Purpose: This helper class stores information relating
+|           to a Member in the database.
+|
+*---------------------------------------------------------------------------*/
 public class MemberData {
     private int memberID;
     private String name;
@@ -42,6 +49,21 @@ public class MemberData {
         this.memberID = memberID;
     }
 
+    /*----------------------------------------------------------------------------
+    |  Method insertString()
+    |
+    |  Purpose: This function returns a set of values as a well-formatted
+    |           string for use in a SQL Insert Into statement.
+    |
+    |  Pre-condition: None.
+    |
+    |  Post-condition: None.
+    |
+    |  Parameters: None.
+    |
+    |  Returns: The CSV values as needed for INSERT INTO.
+    |
+    *---------------------------------------------------------------------------*/
     public String insertString() {
         String retval = "(";
         retval += memberID + ", '" + name + "', '" + phoneNum + "', "

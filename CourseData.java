@@ -1,8 +1,17 @@
+/*----------------------------------------------------------------------------
+|  Class CourseData
+|
+|  Purpose: This helper class stores information that corresponds to
+|           a Course in the database.
+|
+*---------------------------------------------------------------------------*/
+
 import java.sql.Date;
 import java.sql.Time;
 import java.time.DayOfWeek;
 
 public class CourseData {
+    // Class Variables
     private int courseID;
     private String courseName;
     private Date startDate;
@@ -76,6 +85,21 @@ public class CourseData {
         this.trainerID = trainerID;
     }
 
+    /*----------------------------------------------------------------------------
+    |  Method insertString()
+    |
+    |  Purpose: This function returns a set of values as a well-formatted
+    |           string for use in a SQL Insert Into statement.
+    |
+    |  Pre-condition: None.
+    |
+    |  Post-condition: None.
+    |
+    |  Parameters: None.
+    |
+    |  Returns: The CSV values as needed for INSERT INTO.
+    |
+    *---------------------------------------------------------------------------*/
     public String insertString() {
         String retval = "(";
         retval += courseID + ", " + courseName + ", '" + startTime + "', "
