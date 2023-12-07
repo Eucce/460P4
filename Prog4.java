@@ -989,7 +989,23 @@ public class Prog4 {
 
 
     // Adding, Deleting, Updating Packages
-
+    /*----------------------------------------------------------------------------
+    |  Method deletePackage()
+    |
+    |  Purpose: This function runs the deletion protocol for packages. It checks for current
+    |            and registered students in courses pertaining to that package and stops those
+    |		   alterations. If a package is valid it will delete it from the package and coursepackage table.
+    |               
+    |  Pre-condition: None.
+    |
+    |  Post-condition: The package specified is no longer in the database.
+    |                      |
+    |  Parameters: None.
+    |      
+    |
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
     public static void deletePackage() throws SQLException {
         Scanner scan = new Scanner(System.in);
         System.out.println("Which package do you want to delete?");
@@ -1009,6 +1025,22 @@ public class Prog4 {
 
         scan.close();
     }
+    /*----------------------------------------------------------------------------
+    |  Method checkDatesPackage(String Package()
+    |
+    |  Purpose: This function checks if any courses within a Package are still ongoing.
+    |               
+    |  Pre-condition: None.
+    |
+    |  Post-condition: None.
+    |                      |
+    |  Parameters: None.
+    |      
+    |
+    |  Returns: False = Class are still going, not valid to delete
+    |           True = Class are not active going, valid to delete
+    |
+    *---------------------------------------------------------------------------*/
 
     public static boolean checkDatesPackage(String Package) throws SQLException {
         boolean valid = true;
@@ -1028,7 +1060,22 @@ public class Prog4 {
         } else System.out.println("Error printing the members enrolled in course " + Package);
         return valid;
     }
-
+    /*----------------------------------------------------------------------------
+    |  Method checkDates(int courseID)
+    |
+    |  Purpose: This function checks if a course is still ongoing.
+    |               
+    |  Pre-condition: None.
+    |
+    |  Post-condition: None.
+    |                      
+    |  Parameters: Course we are checking.
+    |      
+    |
+    |  Returns: False = Class is still going, not valid to delete
+    |           True = Class is not active going, valid to delete
+    |
+    *---------------------------------------------------------------------------*/
     private static boolean checkDates(int courseID) throws SQLException {
         long millis = System.currentTimeMillis();
         Date curDate = new Date(millis);
@@ -1040,6 +1087,22 @@ public class Prog4 {
         return curDate.before(endDate);
 
     }
+    /*----------------------------------------------------------------------------
+    |  Method checkRegistration(String Package)
+    |
+    |  Purpose: This function checks if a member is subscribed to a given package.
+    |               
+    |  Pre-condition: None.
+    |
+    |  Post-condition: None.
+    |                      |
+    |  Parameters: Package we are checking.
+    |      
+    |
+    |  Returns: False = Someone is not registered for the package
+    |           True = Someone is registered for the package
+    |
+    *---------------------------------------------------------------------------*/
 
     public static boolean checkRegistration(String Package) throws SQLException {
         String query1 = "SELECT COUNT(*) FROM lexc.Subscription" + " WHERE Package_ID = %s";
@@ -1050,6 +1113,21 @@ public class Prog4 {
         else return true;
 
     }
+    /*----------------------------------------------------------------------------
+    |  Method deleteWhole(String Package)
+    |
+    |  Purpose: This function runs the query to delete the table and its mappings in coursepackage.
+    |               
+    |  Pre-condition: None.
+    |
+    |  Post-condition: None.
+    |                      |
+    |  Parameters: Package we are deleting.
+    |      
+    |
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
 
     private static void deleteWhole(String Package) throws SQLException {
         // TODO Auto-generated method stub
@@ -1063,6 +1141,24 @@ public class Prog4 {
 
 
     }
+
+    /*----------------------------------------------------------------------------
+    |  Method updatePackage(String Package)
+    |
+    |  Purpose: This function runs the update capability of a package. It first
+    |			checks if the package is valid to alter and then it asks for the course to 
+    |			remove/add.
+    |               
+    |  Pre-condition: None.
+    |
+    |  Post-condition: None.
+    |                      
+    |  Parameters: None.
+    |      
+    |
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
 
 
     public static void updatePackage() throws SQLException {
@@ -1106,6 +1202,23 @@ public class Prog4 {
         scan.close();
 
     }
+    /*----------------------------------------------------------------------------
+    |  Method updateHelper(String packageID, String courseID, String str)
+    |
+    |  Purpose: This function runs the query to add or remove class from a package.
+    |               
+    |  Pre-condition: None.
+    |
+    |  Post-condition: None.
+    |                      |
+    |  Parameters: Package we are updating.
+    |			Course we are adding/deleting
+    |			A string to determine if we are deleting or adding
+    |      
+    |
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
 
     private static void updateHelper(String packageID, String courseID, String str) throws SQLException {
         // TODO Auto-generated method stub
@@ -1120,6 +1233,21 @@ public class Prog4 {
 
         }
     }
+       /*----------------------------------------------------------------------------
+    |  Method addPackage(String packageID, String courseID, String str)
+    |
+    |  Purpose: This function runs the query to add a new package to the database. It asks the info 
+    |           required then it creates the package ID and appends the package table. Lastly, creating
+    |            the mappings in coursepackage.
+    |               
+    |  Pre-condition: None.
+    |
+    |  Post-condition: The package added is in the database.
+    |                      
+    |  Parameters: None.
+    |  Returns: None.
+    |
+    *---------------------------------------------------------------------------*/
 
     public static void addPackage() throws SQLException {
         Scanner scan = new Scanner(System.in);
